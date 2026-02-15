@@ -2,134 +2,60 @@
 //  NotchView.swift
 //  Aisland
 //
-//  Collapsed notch UI (compact mode)
+//  Created by Aisland on 2026-02-15.
 //
 
 import SwiftUI
 
 struct NotchView: View {
-    // MARK: - Properties
-
-    let isHovering: Bool
-
-    // MARK: - Animation Presets
-
-    private let pulseAnimation = Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)
-    private let hoverAnimation = Animation.spring(response: 0.2, dampingFraction: 0.8)
-
-    // MARK: - Environment
-
-    @Environment(\.colorScheme) var colorScheme
-
-    // MARK: - State
-
-    @State private var isPulsing: Bool = false
-
-    // MARK: - Body
+    @State private var isPulsing = false
 
     var body: some View {
         HStack(spacing: 8) {
-            // Leading icon with pulse animation
+            // Sparkles icon with pulsing animation
             Image(systemName: "sparkles")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.blue.gradient)
-                .opacity(isPulsing ? 0.6 : 1.0)
-                .scaleEffect(isPulsing ? 0.95 : 1.0)
-                .animation(pulseAnimation, value: isPulsing)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.blue, .purple],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .scaleEffect(isPulsing ? 1.1 : 1.0)
+                .animation(
+                    .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                    value: isPulsing
+                )
 
-            // App name
             Text("Aisland")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(.primary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white.opacity(0.9))
 
             // Status indicator
             Circle()
-                .fill(statusColor.gradient)
+                .fill(Color.green)
                 .frame(width: 6, height: 6)
-                .shadow(color: statusColor.opacity(0.5), radius: isHovering ? 4 : 2)
-                .animation(hoverAnimation, value: isHovering)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(backgroundMaterial)
-        .cornerRadius(16)
-        .overlay(
+        .background(
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(borderColor, lineWidth: 1)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                )
         )
-        .shadow(
-            color: shadowColor,
-            radius: isHovering ? 15 : 10,
-            x: 0,
-            y: isHovering ? 6 : 4
-        )
-        .scaleEffect(isHovering ? 1.05 : 1.0)
-        .animation(hoverAnimation, value: isHovering)
+        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
         .onAppear {
             isPulsing = true
         }
-        // Accessibility
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Aisland notch")
-        .accessibilityHint("Click to expand widget dashboard")
-        .accessibilityAddTraits(.isButton)
-    }
-
-    // MARK: - Computed Properties
-
-    private var backgroundMaterial: some View {
-        ZStack {
-            // Ultra-thin material for subtle blur
-            Color.clear
-                .background(.ultraThinMaterial)
-
-            // Slight tint overlay
-            Color.accentColor
-                .opacity(isHovering ? 0.05 : 0.02)
-        }
-    }
-
-    private var borderColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(isHovering ? 0.15 : 0.1)
-            : Color.black.opacity(isHovering ? 0.08 : 0.05)
-    }
-
-    private var shadowColor: Color {
-        colorScheme == .dark
-            ? Color.black.opacity(0.3)
-            : Color.black.opacity(0.1)
-    }
-
-    private var statusColor: Color {
-        .green // Active status
     }
 }
 
-// MARK: - Preview
-
-#Preview("Idle") {
-    NotchView(isHovering: false)
-        .frame(width: 200, height: 32)
-        .background(Color.gray.opacity(0.3))
-}
-
-#Preview("Hovering") {
-    NotchView(isHovering: true)
-        .frame(width: 220, height: 36)
-        .background(Color.gray.opacity(0.3))
-}
-
-#Preview("Dark Mode") {
-    NotchView(isHovering: false)
-        .frame(width: 200, height: 32)
-        .background(Color.white.opacity(0.1))
-        .preferredColorScheme(.dark)
-}
-
-#Preview("Light Mode") {
-    NotchView(isHovering: false)
-        .frame(width: 200, height: 32)
-        .background(Color.black.opacity(0.1))
-        .preferredColorScheme(.light)
+#Preview {
+    NotchView()
+        .frame(width: 180, height: 32)
+        .background(Color.black)
 }

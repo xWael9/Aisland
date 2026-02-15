@@ -2,196 +2,173 @@
 //  ExpandedView.swift
 //  Aisland
 //
-//  Full widget dashboard grid
+//  Created by Aisland on 2026-02-15.
 //
 
 import SwiftUI
 
 struct ExpandedView: View {
-    // MARK: - Properties
+    @Environment(\.colorScheme) private var colorScheme
 
-    @Binding var isExpanded: Bool
-
-    // MARK: - State
-
-    @State private var widgets: [WidgetModel] = WidgetModel.sampleWidgets
-    @State private var hoveredWidgetId: UUID?
-
-    // MARK: - Constants
-
-    private let gridSpacing: CGFloat = 16
-    private let gridPadding: CGFloat = 20
-    private let columns = [
-        GridItem(.adaptive(minimum: 180, maximum: 240), spacing: 16)
+    // Sample widget data
+    private let widgets: [(icon: String, title: String, color: Color)] = [
+        ("calendar", "Calendar", .red),
+        ("music.note", "Media", .pink),
+        ("square.grid.2x2", "Quick Apps", .blue),
+        ("note.text", "Notes", .yellow),
+        ("camera", "Camera", .purple),
+        ("command", "Shortcuts", .orange),
+        ("antenna.radiowaves.left.and.right", "Bluetooth", .cyan)
     ]
-
-    // MARK: - Environment
-
-    @Environment(\.colorScheme) var colorScheme
-
-    // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            header
-                .padding(.horizontal, gridPadding)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+            HStack {
+                Text("Widgets")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                HStack(spacing: 12) {
+                    Button(action: {}) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {}) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+
+            Divider()
+                .opacity(0.1)
 
             // Widget Grid
             ScrollView {
-                LazyVGrid(columns: columns, spacing: gridSpacing) {
-                    ForEach(widgets) { widget in
-                        WidgetCardView(
-                            widget: widget,
-                            isHovered: hoveredWidgetId == widget.id
+                LazyVGrid(
+                    columns: [
+                        GridItem(.adaptive(minimum: 230, maximum: 250), spacing: 16)
+                    ],
+                    spacing: 16
+                ) {
+                    ForEach(widgets.indices, id: \.self) { index in
+                        WidgetCard(
+                            icon: widgets[index].icon,
+                            title: widgets[index].title,
+                            color: widgets[index].color
                         )
-                        .onHover { hovering in
-                            hoveredWidgetId = hovering ? widget.id : nil
-                        }
-                        .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(gridPadding)
+                .padding(24)
             }
         }
-        .background(backgroundMaterial)
+        .frame(width: 780, height: 480)
+        .background(
+            ZStack {
+                // Base material
+                Rectangle()
+                    .fill(.regularMaterial)
+
+                // Subtle gradient overlay
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.02),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+        )
         .cornerRadius(20)
+        .shadow(color: .black.opacity(0.4), radius: 30, y: 15)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(borderColor, lineWidth: 1)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
-        .shadow(color: shadowColor, radius: 20, x: 0, y: 10)
-        // Accessibility
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Widget dashboard")
     }
+}
 
-    // MARK: - Header
+struct WidgetCard: View {
+    let icon: String
+    let title: String
+    let color: Color
 
-    private var header: some View {
-        HStack {
-            // Title
-            HStack(spacing: 8) {
-                Image(systemName: "square.grid.2x2")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.blue.gradient)
+    @State private var isHovered = false
 
-                Text("Widgets")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundStyle(color)
+                    .frame(width: 40, height: 40)
+                    .background(color.opacity(0.15))
+                    .cornerRadius(10)
+
+                Spacer()
+
+                Button(action: {}) {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 28, height: 28)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
             }
+
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.primary)
 
             Spacer()
 
-            // Action buttons
-            HStack(spacing: 12) {
-                // Settings button
-                Button(action: {
-                    // TODO: Show settings
-                }) {
-                    Image(systemName: "gear")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Settings")
+            // Content area
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Widget Ready")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
 
-                // Close button
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
-                        isExpanded = false
-                    }
-                }) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close dashboard")
-                .keyboardShortcut(.escape, modifiers: [])
+                Text("Updated 2m ago")
+                    .font(.system(size: 11))
+                    .foregroundColor(.gray)
             }
         }
-    }
-
-    // MARK: - Computed Properties
-
-    private var backgroundMaterial: some View {
-        ZStack {
-            // Regular material for solid blur
-            Color.clear
-                .background(.regularMaterial)
-
-            // Subtle gradient overlay
-            LinearGradient(
-                colors: [
-                    Color.accentColor.opacity(0.03),
-                    Color.clear
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+        .padding(16)
+        .frame(height: 140)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(nsColor: .controlBackgroundColor))
+                .opacity(0.5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .scaleEffect(isHovered ? 1.03 : 1.0)
+        .shadow(color: .black.opacity(isHovered ? 0.2 : 0.1), radius: isHovered ? 12 : 6, y: isHovered ? 6 : 3)
+        .animation(.spring(response: 0.3), value: isHovered)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
-
-    private var borderColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.1)
-            : Color.black.opacity(0.05)
-    }
-
-    private var shadowColor: Color {
-        colorScheme == .dark
-            ? Color.black.opacity(0.4)
-            : Color.black.opacity(0.15)
-    }
 }
 
-// MARK: - Widget Model
-
-struct WidgetModel: Identifiable {
-    let id = UUID()
-    let name: String
-    let icon: String
-    let color: Color
-    let isEnabled: Bool
-
-    static let sampleWidgets: [WidgetModel] = [
-        WidgetModel(name: "Calendar", icon: "calendar", color: .red, isEnabled: true),
-        WidgetModel(name: "Media", icon: "music.note", color: .pink, isEnabled: true),
-        WidgetModel(name: "Quick Apps", icon: "square.grid.2x2", color: .blue, isEnabled: true),
-        WidgetModel(name: "Notes", icon: "note.text", color: .yellow, isEnabled: true),
-        WidgetModel(name: "Camera", icon: "camera.fill", color: .purple, isEnabled: false),
-        WidgetModel(name: "Shortcuts", icon: "command", color: .orange, isEnabled: false),
-        WidgetModel(name: "Bluetooth", icon: "antenna.radiowaves.left.and.right", color: .cyan, isEnabled: false),
-    ]
-}
-
-// MARK: - Preview
-
-#Preview("Expanded") {
-    ExpandedView(isExpanded: .constant(true))
-        .frame(width: 780, height: 480)
-        .background(Color.black.opacity(0.1))
-}
-
-#Preview("Dark Mode") {
-    ExpandedView(isExpanded: .constant(true))
-        .frame(width: 780, height: 480)
-        .background(Color.white.opacity(0.1))
+#Preview {
+    ExpandedView()
         .preferredColorScheme(.dark)
-}
-
-#Preview("Light Mode") {
-    ExpandedView(isExpanded: .constant(true))
-        .frame(width: 780, height: 480)
-        .background(Color.black.opacity(0.1))
-        .preferredColorScheme(.light)
 }
