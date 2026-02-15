@@ -68,8 +68,8 @@ class HoverDetector {
 
     private func detectTextUnderCursor(at location: NSPoint) {
         // Get the window under the cursor
-        guard let windowNumber = NSWindow.windowNumber(at: location, belowWindowWithWindowNumber: 0),
-              windowNumber != 0 else {
+        let windowNumber = NSWindow.windowNumber(at: location, belowWindowWithWindowNumber: 0)
+        guard windowNumber != 0 else {
             return
         }
 
@@ -86,7 +86,7 @@ class HoverDetector {
     /// Get text selection from frontmost application
     func getSelectedText() -> String? {
         // Get the frontmost app
-        guard let frontmostApp = NSWorkspace.shared.frontmostApplication else {
+        guard NSWorkspace.shared.frontmostApplication != nil else {
             return nil
         }
 

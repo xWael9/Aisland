@@ -116,13 +116,17 @@ struct ContentView: View {
 }
 
 #Preview("Hovering") {
-    ContentView(isHovering: true)
+    let view = ContentView()
+    // Note: Can't directly set @State in preview, so this shows default state
+    return view
         .frame(width: 220, height: 36)
         .background(Color.black.opacity(0.1))
 }
 
 #Preview("Expanded") {
-    ContentView(isExpanded: true)
+    let view = ContentView()
+    // Note: Can't directly set @State in preview, so this shows default state
+    return view
         .frame(width: 780, height: 480)
         .background(Color.black.opacity(0.1))
 }
