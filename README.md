@@ -84,7 +84,13 @@ The app is configured as a menu bar utility with the following permissions:
 
 ## Building the Project
 
-### Using Xcode
+### Prerequisites
+
+Before building, ensure you have:
+- Xcode Command Line Tools installed: `xcode-select --install`
+- macOS 14.6 or later
+
+### Using Xcode (GUI)
 
 1. Open `Aisland.xcodeproj` in Xcode
 2. Select the "Aisland" scheme
@@ -93,15 +99,46 @@ The app is configured as a menu bar utility with the following permissions:
 ### Using xcodebuild (Command Line)
 
 ```bash
-# Build
-xcodebuild -project Aisland.xcodeproj -scheme Aisland -configuration Debug
+# Navigate to project directory
+cd /path/to/Aisland
+
+# Build debug version
+xcodebuild -project Aisland.xcodeproj -scheme Aisland -configuration Debug build
+
+# Build release version
+xcodebuild -project Aisland.xcodeproj -scheme Aisland -configuration Release build
 
 # Run tests
-xcodebuild test -project Aisland.xcodeproj -scheme Aisland
+xcodebuild test -project Aisland.xcodeproj -scheme Aisland -destination 'platform=macOS'
 
-# Build for release
-xcodebuild -project Aisland.xcodeproj -scheme Aisland -configuration Release
+# Build and run
+xcodebuild -project Aisland.xcodeproj -scheme Aisland -configuration Debug build && \
+open build/Debug/Aisland.app
 ```
+
+### Build Output Locations
+
+- **Debug builds**: `build/Debug/Aisland.app`
+- **Release builds**: `build/Release/Aisland.app`
+- **Derived data**: `~/Library/Developer/Xcode/DerivedData/Aisland-*/`
+
+### Installation
+
+After building, you can:
+
+1. **Run from build directory**:
+   ```bash
+   open build/Debug/Aisland.app
+   ```
+
+2. **Copy to Applications**:
+   ```bash
+   cp -r build/Release/Aisland.app /Applications/
+   ```
+
+3. **Launch at login** (optional):
+   - Open System Settings > General > Login Items
+   - Add Aisland.app to login items
 
 ## Architecture
 
@@ -171,12 +208,23 @@ Users will be prompted to grant these permissions on first use.
 
 ## Contributing
 
-When contributing:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development guidelines.
+
+Quick reference:
 
 1. Follow the existing code structure
 2. Add tests for new features
-3. Update this README for significant changes
-4. Use meaningful commit messages
+3. Update documentation for significant changes
+4. Use conventional commit messages (see CONTRIBUTING.md)
+5. Adhere to Code of Conduct (see CODE_OF_CONDUCT.md)
+
+## Documentation
+
+- **[ACTIONBOOK.md](ACTIONBOOK.md)**: Complete development roadmap with 27 tasks across 7 phases
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: System design and technical architecture
+- **[DESIGN.md](DESIGN.md)**: UI/UX design system and guidelines
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Development guidelines and contribution process
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**: Community standards and expectations
 
 ## License
 
