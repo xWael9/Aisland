@@ -2,46 +2,46 @@
 //  AislandWindow.swift
 //  Aisland
 //
-//  Created by Aisland on 2026-02-15.
+//  Custom NSPanel for notch integration
 //
 
 import Cocoa
 import SwiftUI
 
 class AislandWindow: NSPanel {
+
     init(contentRect: NSRect, backing: NSWindow.BackingStoreType, defer flag: Bool) {
         super.init(
             contentRect: contentRect,
-            styleMask: [.nonactivatingPanel, .titled, .resizable, .closable, .fullSizeContentView],
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: backing,
             defer: flag
         )
 
-        // Window configuration
-        self.isFloatingPanel = true
-        self.level = .floating
-        self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        self.titleVisibility = .hidden
-        self.titlebarAppearsTransparent = true
-        self.isMovableByWindowBackground = true
-        self.backgroundColor = .clear
-        self.isOpaque = false
-        self.hasShadow = true
-        self.standardWindowButton(.closeButton)?.isHidden = false
-        self.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        self.standardWindowButton(.zoomButton)?.isHidden = true
-
-        // Set appearance
-        self.appearance = NSAppearance(named: .darkAqua)
-
-        // Set content view
-        setupContentView()
+        setupWindow()
     }
 
-    private func setupContentView() {
-        let contentView = ContentView()
-        let hostingView = NSHostingView(rootView: contentView)
-        self.contentView = hostingView
+    private func setupWindow() {
+        // CRITICAL: Set window level ABOVE menu bar to overlay the notch
+        self.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.statusWindow)) + 2)
+
+        // Window behavior
+        self.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
+
+        // Appearance
+        self.isOpaque = false
+        self.backgroundColor = .clear
+        self.hasShadow = false
+
+        // Ignore mouse events on transparent areas
+        self.ignoresMouseEvents = false
+
+        // Keep window on top
+        self.hidesOnDeactivate = false
+
+        // Set content view
+        self.titlebarAppearsTransparent = true
+        self.titleVisibility = .hidden
     }
 
     override var canBecomeKey: Bool {
@@ -49,53 +49,29 @@ class AislandWindow: NSPanel {
     }
 
     override var canBecomeMain: Bool {
-        return true
+        return false
     }
 
-    /// Position window at the center of the screen
-    func centerOnScreen() {
-        if let screen = NSScreen.main {
-            let screenRect = screen.visibleFrame
-            let windowRect = self.frame
-            let x = screenRect.midX - (windowRect.width / 2)
-            let y = screenRect.midY - (windowRect.height / 2)
-            self.setFrameOrigin(NSPoint(x: x, y: y))
+    // Handle escape key
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 { // ESC key
+            NotificationCenter.default.post(name: NSNotification.Name("EscapeKeyPressed"), object: nil)
+        } else {
+            super.keyDown(with: event)
         }
     }
 
-    /// Position window near the status bar item
-    func positionNearStatusItem(_ statusItem: NSStatusItem) {
-        guard let button = statusItem.button,
-              let screen = button.window?.screen else {
-            centerOnScreen()
-            return
-        }
+    /// Position window to overlay the notch area
+    func positionAtNotch() {
+        guard let screen = NSScreen.main else { return }
 
-        let buttonFrame = button.window?.convertToScreen(button.frame) ?? .zero
-        let windowRect = self.frame
+        let screenFrame = screen.frame
+        let windowSize = self.frame.size
 
-        // Position below the status item
-        let x = buttonFrame.midX - (windowRect.width / 2)
-        let y = buttonFrame.minY - windowRect.height - 8
+        // Position at the absolute top of the screen to overlay notch
+        let x = (screenFrame.width - windowSize.width) / 2
+        let y = screenFrame.maxY - windowSize.height
 
         self.setFrameOrigin(NSPoint(x: x, y: y))
-
-        // Ensure window is on screen
-        if let screen = NSScreen.main {
-            let screenRect = screen.visibleFrame
-            var frame = self.frame
-
-            if frame.maxX > screenRect.maxX {
-                frame.origin.x = screenRect.maxX - frame.width
-            }
-            if frame.minX < screenRect.minX {
-                frame.origin.x = screenRect.minX
-            }
-            if frame.minY < screenRect.minY {
-                frame.origin.y = screenRect.minY
-            }
-
-            self.setFrame(frame, display: true)
-        }
     }
 }

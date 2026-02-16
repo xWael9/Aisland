@@ -14,11 +14,15 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             if isExpanded {
-                ExpandedView()
-                    .transition(.scale(scale: 0.95).combined(with: .opacity))
-                    .onAppear {
-                        WindowManager.shared.expandWindow()
+                ExpandedView(onClose: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                        isExpanded = false
                     }
+                })
+                .transition(.scale(scale: 0.95).combined(with: .opacity))
+                .onAppear {
+                    WindowManager.shared.expandWindow()
+                }
             } else {
                 NotchView()
                     .transition(.scale.combined(with: .opacity))
@@ -41,13 +45,22 @@ struct ContentView: View {
                         isExpanded = true
                     }
                 }
-            } else if !hovering && hoverTimer != nil {
+            } else if !hovering {
                 hoverTimer?.invalidate()
                 hoverTimer = nil
+
+                // Auto-collapse when mouse leaves
+                if isExpanded {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                            isExpanded = false
+                        }
+                    }
+                }
             }
         }
-        .onExitCommand {
-            // ESC key to close
+        // ESC key to close
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("EscapeKeyPressed"))) { _ in
             if isExpanded {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
                     isExpanded = false

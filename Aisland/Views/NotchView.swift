@@ -2,7 +2,7 @@
 //  NotchView.swift
 //  Aisland
 //
-//  Created by Aisland on 2026-02-15.
+//  Notch-integrated collapsed state
 //
 
 import SwiftUI
@@ -11,43 +11,43 @@ struct NotchView: View {
     @State private var isPulsing = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            // Sparkles icon with pulsing animation
+        HStack(spacing: 6) {
+            // Minimal sparkles icon
             Image(systemName: "sparkles")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [.blue, .purple],
+                        colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .scaleEffect(isPulsing ? 1.1 : 1.0)
                 .animation(
-                    .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                    .easeInOut(duration: 2.0).repeatForever(autoreverses: true),
                     value: isPulsing
                 )
 
             Text("Aisland")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.white.opacity(0.9))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
 
-            // Status indicator
+            // Tiny status indicator
             Circle()
-                .fill(Color.green)
-                .frame(width: 6, height: 6)
+                .fill(Color.green.opacity(0.8))
+                .frame(width: 4, height: 4)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            // Dark background to blend with notch
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.4))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.05), lineWidth: 0.5)
                 )
         )
-        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
         .onAppear {
             isPulsing = true
         }
@@ -56,6 +56,6 @@ struct NotchView: View {
 
 #Preview {
     NotchView()
-        .frame(width: 180, height: 32)
+        .frame(width: 120, height: 24)
         .background(Color.black)
 }

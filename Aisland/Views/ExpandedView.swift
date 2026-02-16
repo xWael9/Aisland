@@ -10,6 +10,8 @@ import SwiftUI
 struct ExpandedView: View {
     @Environment(\.colorScheme) private var colorScheme
 
+    let onClose: () -> Void
+
     // Sample widget data
     private let widgets: [(icon: String, title: String, color: Color)] = [
         ("calendar", "Calendar", .red),
@@ -32,19 +34,24 @@ struct ExpandedView: View {
                 Spacer()
 
                 HStack(spacing: 12) {
-                    Button(action: {}) {
+                    Button(action: {
+                        // TODO: Show settings
+                    }) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
 
-                    Button(action: {}) {
+                    Button(action: {
+                        onClose()
+                    }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .keyboardShortcut(.escape, modifiers: [])
                 }
             }
             .padding(.horizontal, 24)
@@ -169,6 +176,6 @@ struct WidgetCard: View {
 }
 
 #Preview {
-    ExpandedView()
+    ExpandedView(onClose: {})
         .preferredColorScheme(.dark)
 }

@@ -2,7 +2,7 @@
 //  WindowManager.swift
 //  Aisland
 //
-//  Created by Aisland on 2026-02-15.
+//  Manages notch-integrated window
 //
 
 import Cocoa
@@ -13,11 +13,11 @@ class WindowManager {
 
     private var window: AislandWindow?
 
-    // Collapsed (notch integrated) size
-    private let collapsedSize = NSSize(width: 180, height: 32)
+    // Collapsed size - small enough to sit IN the notch
+    private let collapsedSize = NSSize(width: 120, height: 24)
 
-    // Expanded (widget dashboard) size
-    private let expandedSize = NSSize(width: 780, height: 480)
+    // Expanded size - drops down from notch
+    private let expandedSize = NSSize(width: 780, height: 520)
 
     private init() {
         setupWindow()
@@ -33,41 +33,34 @@ class WindowManager {
             defer: false
         )
 
-        // Position at notch immediately
-        positionAtNotch()
+        // Set SwiftUI content
+        if let window = window {
+            let contentView = NSHostingView(rootView: ContentView())
+            contentView.wantsLayer = true
+            contentView.layer?.backgroundColor = .clear
+            window.contentView = contentView
+        }
+
+        // Position at notch
+        window?.positionAtNotch()
     }
 
-    /// Position window at the notch (top-center of screen)
-    private func positionAtNotch() {
-        guard let window = window,
-              let screen = NSScreen.main else { return }
-
-        let screenFrame = screen.frame
-        let windowSize = window.frame.size
-
-        // Calculate position: centered horizontally, at the very top
-        let x = (screenFrame.width - windowSize.width) / 2
-        let y = screenFrame.maxY - windowSize.height
-
-        window.setFrameOrigin(NSPoint(x: x, y: y))
-    }
-
-    /// Show the Aisland window
+    /// Show the window
     func showWindow() {
         guard let window = window else { return }
 
         if !window.isVisible {
-            positionAtNotch()
-            window.makeKeyAndOrderFront(nil)
+            window.positionAtNotch()
+            window.orderFrontRegardless()
         }
     }
 
-    /// Hide the Aisland window
+    /// Hide the window
     func hideWindow() {
         window?.orderOut(nil)
     }
 
-    /// Toggle window visibility
+    /// Toggle visibility
     func toggleWindow() {
         guard let window = window else { return }
 
@@ -78,21 +71,21 @@ class WindowManager {
         }
     }
 
-    /// Expand window to show full widget dashboard
+    /// Expand window - drops down from notch
     func expandWindow() {
         guard let window = window,
               let screen = NSScreen.main else { return }
 
         let screenFrame = screen.frame
 
-        // Calculate centered position for expanded view
+        // Center horizontally
         let x = (screenFrame.width - expandedSize.width) / 2
-        // Position below the notch area
-        let y = screenFrame.maxY - expandedSize.height - 40
+        // Drop down from top, leaving space for notch
+        let y = screenFrame.maxY - expandedSize.height - 5
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            context.duration = 0.35
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 1.0, 0.3, 1.0)
             window.animator().setFrame(
                 NSRect(x: x, y: y, width: expandedSize.width, height: expandedSize.height),
                 display: true
@@ -100,20 +93,18 @@ class WindowManager {
         }
     }
 
-    /// Collapse window to notch size
+    /// Collapse window - back to notch integration
     func collapseWindow() {
-        guard let window = window else { return }
+        guard let window = window,
+              let screen = NSScreen.main else { return }
+
+        let screenFrame = screen.frame
+        let x = (screenFrame.width - collapsedSize.width) / 2
+        let y = screenFrame.maxY - collapsedSize.height
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.25
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-
-            // Animate back to notch position
-            let screen = NSScreen.main
-            let screenFrame = screen?.frame ?? .zero
-            let x = (screenFrame.width - collapsedSize.width) / 2
-            let y = screenFrame.maxY - collapsedSize.height
-
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 1.0, 0.3, 1.0)
             window.animator().setFrame(
                 NSRect(x: x, y: y, width: collapsedSize.width, height: collapsedSize.height),
                 display: true
@@ -121,12 +112,10 @@ class WindowManager {
         }
     }
 
-    /// Check if window is currently visible
     var isWindowVisible: Bool {
         return window?.isVisible ?? false
     }
 
-    /// Get current window
     var currentWindow: AislandWindow? {
         return window
     }
